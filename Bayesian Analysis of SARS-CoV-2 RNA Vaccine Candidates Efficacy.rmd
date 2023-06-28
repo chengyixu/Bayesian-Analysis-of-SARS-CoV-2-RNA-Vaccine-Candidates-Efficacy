@@ -1,0 +1,354 @@
+---
+title: "STA 141A Fundamentals of Statistical Data Science - Homework 2"
+params:
+  term: Winter 2023
+  duedate: '2023-03-08'
+  name: YOUR NAME HERE
+  email: YOUR EMAIL ADDRESS HERE
+  total_points: XX
+  grade: NA
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+
+
+```{r as_ordinal, include = TRUE, echo = FALSE}
+ord_suffix <-
+    function(x) switch(as.character(x), "1"="st", "2"="nd", "3"="rd", "th")
+as_ordinal <- function(x) paste0(x, ord_suffix(x))
+```
+
+# Exercises
+
+1.After executing the command
+
+```{r eval=FALSE, include=TRUE}
+#z <- rep(c(rep(x, each = a), rep(y, each = b)), times = t)
+```
+which element of x or y is contained in the kth element of z?. Suppose that x and y are vectors in R of lengths m and n,
+respectively.  Write a function, `rep_tracker(k, m, n, a, b, t)`, which computes
+the answer for any positive integers k, m, n, a, b, and t.  Your
+function should return a list whose first element is named
+"src_vector" and gives the name of the vector ("x" or "y") and
+whose second element is named "src_index" and gives the integer
+indicating the original location of the value in either "x" or "y".
+For example, if the kth element of z was originally the 5 element
+of y, then your function should return `list(src_vector = "y",
+src_index = 5)`.
+
+Your may not use the `rep()` function in your solution.  Your function
+should emulate the way that a human might solve this problem using
+integer arithmetic.
+
+# Solution
+
+```{r}
+ord_suffix <- function(x) switch(as.character(x), "1"="st", "2"="nd", "3"="rd", "th")
+
+as_ordinal <- function(x) paste0(x, ord_suffix(x))
+
+rep_tracker <- function(k, m, n, a, b, t) {
+  
+  m_a <- m * a
+  n_b <- n * b
+  len_w <- m_a + n_b
+  skip_times <- (k - 1) %/% len_w
+  r <- (k - 1) %% len_w + 1
+  
+  if (r <= m_a) {
+    src_vector <- "x"
+    src_index <- (r - 1) %/% a + 1
+  } else {
+    src_vector <- "y"
+    r <- r - m_a
+    src_index <- (r - 1) %/% b + 1
+  }
+  
+  result_list <- list(src_vector = src_vector, src_index = src_index)
+  return(result_list)
+  
+}
+```
+
+```{r}
+#The function takes six arguments k, m, n, a, b, and t as described in the problem. It first computes the length of the repeated vector w as len_w = m*a + n*b. It then calculates the number of times the vector w is repeated before the kth element is reached as skip_times = (k - 1) %/% len_w, and the position of the kth element within the repeated vector as r = (k - 1) %% len_w + 1. 
+
+#then determine whether the kth element comes from x or y by comparing r to m_a = m * a. If r is less than or equal to m_a, then the kth element comes from x, and  compute its index as (r - 1) %/% a + 1. If r is greater than m_a, then the kth element comes from y, and subtract m_a from r to compute the position of the element within y, and then compute its index as (r - 1) %/% b + 1.
+
+#Finally, return a list with two elements: the source vector ("x" or "y") and the index within that vector. The source vector is stored in src_vector, and the index is stored in src_index.
+```
+
+```{r}
+k <- 130
+m <- 11
+n <- 8
+a <- 2
+b <- 3
+t <- 4
+
+rep_tracker(k, m, n, a, b, t)
+
+```
+```{r}
+#indicated that the 130th element of z was originally the 6th element of y
+```
+
+
+#Solution ends
+
+```{r rep_tracker, echo = TRUE}
+rep_tracker <- function(k, m, n, a, b, t) {
+    if (k > (t * (m * a + n * b))) warning("First argument is out of range")
+    ## 
+    ## INSERT YOUR CODE HERE TO DETERMINE v AND i
+    ## 
+    list(src_vector = v, src_index = i)
+    }
+```
+
+**ALERT:** Please delete this line and everything below it before submitting your solution.
+
+## Hints
+
+```{r include = TRUE, echo = FALSE, eval = TRUE}
+k <- 130 ; m <- 11 ; n <- 8 ; a <- 2 ; b <- 3 ; t <- 4
+```
+
+```{r hints, include = FALSE, echo = FALSE}
+k <- 130 ; m <- 11 ; n <- 8 ; a <- 2 ; b <- 3 ; t <- 4
+skip_times <- k %/% (m*a + n*b)
+r <- k %% (m*a + n*b)
+if (r == 0L) r <- m*a
+is_x <- (r <= m*a)
+d <- ifelse(is_x, a, b)
+s <- ifelse(is_x, r, r - m*a)
+```
+
+It is helpful to think about how a human would work this out.  Note
+that
+
+* `rep(x, each = a)` repeats each element of x a times, producing a vector of length `m*a`.
+* `rep(y, each = b)` repeats each element of y b times, producing a vector of length `n*b`.
+* `c(rep(x, each = a), rep(y, each = b))` combines these two vectors,
+  producing a vector of length `m*a + n*b`.\
+  Lets call this vector "w".
+* `rep(c(rep(x, each = a), rep(y, each = b)), times = t)` repeats the
+  whole vector w t times, producing a vector of length `t * (m*a + n*b)`.
+
+With this knowledge, we can work backwards to the answer.  Suppose for
+example that k = `r k`, m = `r m`, n = `r n`, a = `r a`, b = `r b`,
+and t = `r t`.
+
+* The outermost call to `rep()` just makes t = `r t` copies of a
+  vector w of length `m*a + n*b =` `r m*a + n*b`.
+* k = `r k` divided by `r m*a + n*b` gives `r skip_times`
+  with a remainder of r = `r r`. (How would you calculate this
+  remainder in R?)
+* These calculations tell us that we're going to skip over
+  `r skip_times` copies of w and then look for the
+  `r as_ordinal(r)` element of w.\
+  Be careful here: what element of w would you be seeking
+  if the remainder calculated in the last step were 0?
+* Next, to determine whether we're looking for an element of the
+  original x or y vector, we just need to know whether the remainder
+  from the last step was less than or equal to m*a = `r m*a` or not.\
+  In the present example r = `r r` is
+  `r ifelse(is_x, "less than or equal to", "greater than")` `r m*a`,
+  so we are looking for an element of `r ifelse(is_x, "x", "y")`.
+* If we are looking for an element of y, then we can subtract m*a
+  from r and ignore x.  Otherwise, we can ignore y.\
+  In the present example,
+  we are looking for an element of `r ifelse(is_x, "x", "y")`,
+  so r `r ifelse(is_x, "stays at", "is changed to")` `r s`.
+* Next, depending on whether we are looking for an element of x or y,
+  we have to use r with either a or b to determine the original index.
+  Let d represent the value of a or b, depending on whether we are
+  looking for an element of x or of y.  Thus, in the present example,
+  d = `r d`.
+* Now you just need to figure out how to do the necessary arithmetic
+  with r and d to get the index.
+  
+In outline, the function should look something like this.  (Again, be
+careful to do the right thing in the first step if `m*a + n*b` happens
+to divide evenly into k.
+
+| calculate the remainder r when k is divided by `m*a + n*b`
+| **if** r is less than or equal to m*a
+|     set v to "x"
+|     set d to a
+| **else**
+|     set v to "y"
+|     set r to r - m*a
+|     set d to b
+| **endif**
+| use r and d to calculate i
+| **return** results
+</br>
+
+Again, you are not allowed to use the `rep()` function in your
+solution.  Thus, a function like the following is *NOT* allowed, even
+though it returns the correct solution. (Of course there is nothing
+stopping you from using this version to check that your own solution
+is working correctly.)
+
+```{r not_allowed, echo = TRUE}
+forbidden <- function(k, m, n, a, b, t) {
+    if (any(k > (t * (m * a + n * b)))) warning("First argument is out of range")
+    xy <- rep(c(rep("x", each = m*a), rep("y", each = n*b)),
+              times = t)
+    ij <- rep(c(rep(1:m, each = a), rep(1:n, each = b)),
+              times = t)
+    list(src_vector = xy[k], src_index = ij[k])
+    }
+```
+
+One last comment: the forbidden version of the function provided above
+will work correctly if the argument k is an integer *vector*.  It is a
+good exercise to try to modify your solution so that it also works
+with vector k.
+
+
+ 
+2. Consider the report:  [A PHASE 1/2/3, PLACEBO-CONTROLLED, RANDOMIZED, OBSERVER-BLIND, DOSE-FINDING STUDY TO EVALUATE THE SAFETY, TOLERABILITY, IMMUNOGENICITY, AND EFFICACY OF SARS-COV-2 RNA VACCINE CANDIDATES AGAINST COVID-19 IN HEALTHY INDIVIDUALS (pages 99-101)]. Let $\theta$ be the probability that a subject who fell ill with Covid-19 is from the treatment group and $1-\theta$  the probability that the subject is from the control group. Assuming that 94 subjects fell ill to Covid-19 (with a sample efficacy above 90%) and at most 8 of those 94 subjects were vaccinated. Write a report (Introduction, Methods, Results and Conclusions) assuming:
+
+
+ a. A Beta prior for $\theta$: $p(\theta)$=Beta$($a=0.5,b=0.5$)$, where $a$ and $b$ are the shape parameters
+ of the Beta distribution. Plot the prior, likelihood and posterior as function of $\theta$.
+
+```{r}
+library(ggplot2)
+library(scales)
+
+# Define the parameters
+a <- 0.5
+b <- 0.5
+n <- 94
+k <- 8
+
+# Define the prior distribution
+prior <- function(theta) dbeta(theta, a, b)
+
+# Define the likelihood function
+likelihood <- function(theta) theta^k * (1-theta)^(n-k)
+
+# Define the posterior distribution
+posterior <- function(theta) dbeta(theta, a+k, b+n-k)
+
+# Plot the prior, likelihood, and posterior distributions
+theta_values <- seq(0, 1, length.out = 100)
+prior_values <- prior(theta_values)
+likelihood_values <- likelihood(theta_values)
+posterior_values <- posterior(theta_values)
+
+df <- data.frame(theta = theta_values,
+                 prior = prior_values,
+                 likelihood = likelihood_values,
+                 posterior = posterior_values)
+
+ggplot(df, aes(x = theta)) +
+  geom_line(aes(y = prior, color = "Prior")) +
+  geom_line(aes(y = likelihood, color = "Likelihood")) +
+  geom_line(aes(y = posterior, color = "Posterior")) +
+  scale_color_manual("", values = c("Prior" = "red", "Likelihood" = "green", "Posterior" = "blue")) +
+  labs(x = expression(theta), y = "Density", title = "Prior, Likelihood, and Posterior Distributions") +
+  theme_bw()
+
+#The output will be a plot showing the prior, likelihood, and posterior distributions:
+#The red line represents the prior distribution, the green line represents the likelihood function, and the blue line represents the posterior distribution. can see that the posterior distribution has shifted towards higher values of $\theta$ compared to the prior distribution, indicating that the data provides some evidence in favor of the vaccine being effective.
+```
+
+
+ b. Compute the posterior probability of having a value of $\theta>0.4118$.
+
+```{r}
+#To compute the posterior probability of having a value of $\theta > 0.4118$, can integrate the posterior distribution from 0.4118 to 1. use the integrate function in R to perform the integration numerically. The following code can be used to calculate the posterior probability:
+a <- 0.5
+b <- 0.5
+n <- 94
+k <- 8
+
+posterior <- function(theta) dbeta(theta, a + k, b + n - k)
+
+post_prob <- (integrate(posterior, 0.4118, 1)$value)*100
+post_prob
+
+```
+
+
+ c. Compute a 95\%  credible and confidence intervals.
+ 
+```{r}
+a <- 0.5
+b <- 0.5
+n <- 94
+k <- 8
+
+posterior <- function(theta) dbeta(theta, a + k, b + n - k)
+
+lower <- qbeta(0.025, a + k, b + n - k)
+upper <- qbeta(0.975, a + k, b + n - k)
+
+credible_interval <- c(lower, upper)
+credible_interval
+
+```
+```{r}
+#Therefore, the 95% credible interval for $\theta$ is approximately [0.0410614 0.1541568].
+theta_hat <- k/n
+se <- sqrt(theta_hat*(1-theta_hat)/n)
+lower <- theta_hat - 1.96*se
+upper <- theta_hat + 1.96*se
+
+confidence_interval <- c(lower, upper)
+confidence_interval
+
+#Therefore, the 95% confidence interval for $\theta$ is approximately [0.02869607 0.14151670].
+```
+ 
+
+ d.  Plot the posterior empirical predictive density. If a new sample of 94 subjects with Covid-19 is taken, how many    subjects were vaccinated?.
+
+```{r}
+a <- 0.5
+b <- 0.5
+n <- 94
+k <- 8
+
+posterior <- function(theta) dbeta(theta, a + k, b + n - k)
+
+# Generate a large number of samples from the posterior distribution
+n_samples <- 100000
+theta_samples <- rbeta(n_samples, a + k, b + n - k)
+
+# For each sample, generate a new sample of 94 subjects with Covid-19 and compute the proportion of vaccinated subjects
+prop_vaccinated <- rbinom(n_samples, n, theta_samples)/n
+
+# Compute the posterior empirical predictive density
+ped <- density(prop_vaccinated, bw = "nrd")
+
+# Convert ped to a data frame
+ped_df <- data.frame(x = ped$x, y = ped$y)
+
+# Plot the posterior empirical predictive density
+ggplot(ped_df, aes(x = x, y = y)) +
+  geom_line(color = "blue") +
+  labs(x = "Proportion of Vaccinated Subjects", y = "Density", title = "Posterior Empirical Predictive Density") +
+  theme_bw()
+#The output is a plot showing the posterior empirical predictive density:
+
+
+expected_prop_vaccinated <- mean(theta_samples)
+expected_vaccinated <- round(expected_prop_vaccinated * n)
+expected_vaccinated
+
+#The x-axis represents the proportion of vaccinated subjects in a new sample of 94 subjects with COVID-19, and the y-axis represents the density of the posterior empirical predictive distribution. can see that the density is concentrated at low values of the proportion, indicating that it is unlikely that a large number of subjects in a new sample of 94 subjects with COVID-19 would be vaccinated. 
+# If a new sample of 94 subjects with COVID-19 is taken, use the posterior predictive distribution to estimate the expected number of vaccinated subjects in the sample. can do this by computing the expected value of the binomial distribution with parameters $n=94$ and $\theta$ sampled from the posterior distribution. The following code can be used to compute the expected number of vaccinated subjects:
+```
+
+```{r}
+#Therefore, I expect approximately 8 subjects out of the new sample of 94 subjects with COVID-19 to be vaccinated, based on the posterior predictive distribution.
+```
+
